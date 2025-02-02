@@ -8,11 +8,13 @@ class Task(Base):
   task = Column(String,nullable=False)
   created_at = Column(TIMESTAMP(timezone=True),server_default=text('now()'))
   user_id = Column(Integer,ForeignKey("Users.user_id"))
+
   user=relationship("User",back_populates="tasks")
 
 class User(Base):
   __tablename__ = "Users"
   user_id = Column(Integer, primary_key=True,index=True, nullable=False,autoincrement=True)
-  username = Column(String, nullable=False)
+  username = Column(String, nullable=False,unique=True)
   password = Column(String, nullable=False)
+  
   tasks=relationship("Task",back_populates="user")
