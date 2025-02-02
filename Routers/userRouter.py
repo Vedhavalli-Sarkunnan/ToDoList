@@ -1,21 +1,22 @@
 from fastapi import APIRouter,HTTPException, Depends
-from schemas import UserSchema
+from schemas import UserSchema, ShowUser
 from models import User
 from starlette import status
 from database import get_db
 from sqlalchemy.orm import Session
 from auth.hashing import hash_password
+from typing import List
 
 router = APIRouter(tags=['Users'],prefix="/user")
 
-@router.get("/", status_code=status.HTTP_200_OK)
+@router.get("/", status_code=status.HTTP_200_OK, response_model=List[ShowUser])
 def get_all_users(db:Session = Depends(get_db)):
   all_users = db.query(User).all()
   return all_users
 
-@router.get("/{id}", status_code=status.HTTP_200_OK)
+@router.get("/{id}", status_code=status.HTTP_200_OK, response_model=ShowUser)
 def get_particular_user(id: int,db:Session = Depends(get_db)):
-  particular_user = db.query(User).filter(User.user_id==id).first()
+  particular_user = db.query(User).filter(User.user_id==id).first() 
   if not particular_user:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with ID {id} not found")
   return particular_user

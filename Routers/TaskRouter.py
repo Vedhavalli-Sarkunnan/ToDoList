@@ -1,18 +1,19 @@
 from fastapi import APIRouter,HTTPException, Depends
 from starlette import status
-from schemas import TaskSchema
+from schemas import TaskSchema, ShowTask
 from models import Task
 from database import get_db
 from sqlalchemy.orm import Session
+from typing import List
 
 router = APIRouter(tags=["Tasks"], prefix="/task")
 
-@router.get("/", status_code=status.HTTP_200_OK)
+@router.get("/", status_code=status.HTTP_200_OK, response_model=List[ShowTask])
 def get_all_tasks(db: Session = Depends(get_db)):
   all_tasks = db.query(Task).all()
   return all_tasks
 
-@router.get("/{id}", status_code=status.HTTP_200_OK)
+@router.get("/{id}", status_code=status.HTTP_200_OK, response_model=ShowTask)
 def get_particular_task(id:int, db:Session = Depends(get_db)):
   particular_task= db.query(Task).filter(Task.task_id==id).first()
   if not particular_task:
@@ -23,8 +24,8 @@ def get_particular_task(id:int, db:Session = Depends(get_db)):
 def add_task(task: TaskSchema, db: Session = Depends(get_db)):
   if task.task.strip()=="":
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You can't enter a empty task")
-  user_id=3
-  new_task = Task(task=task.task,user_id=user_id)
+  user_id=4
+  new_task = Task(task=task.task.strip(),user_id=user_id)
   db.add(new_task)
   db.commit()
   db.refresh(new_task)
