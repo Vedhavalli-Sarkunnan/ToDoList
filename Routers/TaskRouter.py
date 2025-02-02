@@ -21,7 +21,9 @@ def get_particular_task(id:int, db:Session = Depends(get_db)):
 
 @router.post("/",status_code=status.HTTP_201_CREATED)
 def add_task(task: TaskSchema, db: Session = Depends(get_db)):
-  user_id=1
+  if task.task.strip()=="":
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You can't enter a empty task")
+  user_id=3
   new_task = Task(task=task.task,user_id=user_id)
   db.add(new_task)
   db.commit()

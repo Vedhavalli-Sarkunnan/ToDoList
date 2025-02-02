@@ -16,5 +16,4 @@ class User(Base):
   user_id = Column(Integer, primary_key=True,index=True, nullable=False,autoincrement=True)
   username = Column(String, nullable=False,unique=True)
   password = Column(String, nullable=False)
-  
   tasks=relationship("Task",back_populates="user")

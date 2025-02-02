@@ -22,6 +22,8 @@ def get_particular_user(id: int,db:Session = Depends(get_db)):
 
 @router.post("/",status_code=status.HTTP_201_CREATED)
 def add_user(user:UserSchema, db:Session = Depends(get_db)):
+  if " " in user.username:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username cannot have space-separated words")
   existing_user=db.query(User).filter(User.username==user.username).first()
   if existing_user:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
