@@ -1,7 +1,6 @@
 from fastapi import FastAPI
+from Routers import TaskRouter
 
 app=FastAPI()
 
-@app.get("/")
-def simple_function():
-  return "Working"
+app.include_router(TaskRouter.router)
