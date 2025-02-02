@@ -5,26 +5,35 @@ from models import Task
 from database import get_db
 from sqlalchemy.orm import Session
 from typing import List
+from auth.jwt import oauth2_scheme, decode_token
 
 router = APIRouter(tags=["Tasks"], prefix="/task")
 
 @router.get("/", status_code=status.HTTP_200_OK, response_model=List[ShowTask])
-def get_all_tasks(db: Session = Depends(get_db)):
-  all_tasks = db.query(Task).all()
+def get_all_tasks(db: Session = Depends(get_db), token:str = Depends(oauth2_scheme)):
+  user_id = decode_token(token)
+  if not user_id:
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+  all_tasks = db.query(Task).filter(Task.user_id==user_id).all()
   return all_tasks
 
 @router.get("/{id}", status_code=status.HTTP_200_OK, response_model=ShowTask)
-def get_particular_task(id:int, db:Session = Depends(get_db)):
+def get_particular_task(id:int, db:Session = Depends(get_db), token:str =Depends(oauth2_scheme)):
+  user_id = decode_token(token)
+  if not user_id:
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
   particular_task= db.query(Task).filter(Task.task_id==id).first()
   if not particular_task:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Task with ID {id} not found")
   return particular_task
 
 @router.post("/",status_code=status.HTTP_201_CREATED)
-def add_task(task: TaskSchema, db: Session = Depends(get_db)):
+def add_task(task: TaskSchema, db: Session = Depends(get_db),token:str= Depends(oauth2_scheme)):
   if task.task.strip()=="":
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You can't enter a empty task")
-  user_id=4
+  user_id=decode_token(token)
+  if not user_id:
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
   new_task = Task(task=task.task.strip(),user_id=user_id)
   db.add(new_task)
   db.commit()
@@ -32,7 +41,10 @@ def add_task(task: TaskSchema, db: Session = Depends(get_db)):
   return { "message" : "Task added successfully", "task" : new_task }
 
 @router.put("/{id}", status_code=status.HTTP_200_OK)
-def update_task(task: str, id:int, db:Session=Depends(get_db)):
+def update_task(task: str, id:int, db:Session=Depends(get_db), token:str= Depends(oauth2_scheme)):
+  user_id=decode_token(token)
+  if not user_id:
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
   task_to_be_updated=db.query(Task).filter(Task.task_id==id).first()
   if not task_to_be_updated:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Task with ID {id} not found")
@@ -43,7 +55,10 @@ def update_task(task: str, id:int, db:Session=Depends(get_db)):
 
 
 @router.delete('/{id}', status_code=status.HTTP_200_OK)
-def delete_task(id:int, db:Session = Depends(get_db)):
+def delete_task(id:int, db:Session = Depends(get_db), token:str=Depends(oauth2_scheme)):
+  user_id=decode_token(token)
+  if not user_id:
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
   task_to_be_deleted = db.query(Task).filter(Task.task_id==id).first()
   if not task_to_be_deleted:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Task with ID {id} not found")

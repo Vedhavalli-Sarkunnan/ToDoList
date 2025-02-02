@@ -10,10 +10,13 @@ class UserSchema(BaseModel):
 class ShowTask(BaseModel):
   task: str
   class Config():
-    orm_mode=True
+    from_attributes=True
 
 class ShowUser(BaseModel):
   username: str
   class Config():
-    orm_mode=True
-    
+    from_attributes=True
+
+class Token(BaseModel):
+  access_token: str
+  token_type:str

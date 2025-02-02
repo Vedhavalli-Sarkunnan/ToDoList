@@ -6,3 +6,4 @@ psycopg2
 PyJWT
 passlib
 bcrypt
+python-jose

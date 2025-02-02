@@ -1,11 +1,11 @@
 from fastapi import APIRouter,HTTPException, Depends
-from schemas import UserSchema, ShowUser
+from schemas import ShowUser
 from models import User
 from starlette import status
 from database import get_db
 from sqlalchemy.orm import Session
-from auth.hashing import hash_password
 from typing import List
+from auth.hashing import hash_password
 
 router = APIRouter(tags=['Users'],prefix="/user")
 
@@ -19,20 +19,7 @@ def get_particular_user(id: int,db:Session = Depends(get_db)):
   particular_user = db.query(User).filter(User.user_id==id).first() 
   if not particular_user:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with ID {id} not found")
-  return particular_user
-
-@router.post("/",status_code=status.HTTP_201_CREATED)
-def add_user(user:UserSchema, db:Session = Depends(get_db)):
-  if " " in user.username:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username cannot have space-separated words")
-  existing_user=db.query(User).filter(User.username==user.username).first()
-  if existing_user:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
-  new_user= User(username=user.username, password=hash_password(user.password))
-  db.add(new_user)
-  db.commit()
-  db.refresh(new_user)
-  return { "message": "User added successfully", "user": new_user } 
+  return particular_user 
 
 @router.put("/{id}",status_code=status.HTTP_200_OK)
 def update_user(id:int, username: str =None, password: str=None, db:Session = Depends(get_db)):
