@@ -11,25 +11,30 @@ router = APIRouter(tags=["Auth"],prefix="/auth")
 
 @router.post("/register",status_code=status.HTTP_201_CREATED)
 def register(user:UserSchema, db:Session = Depends(get_db)):
-  if " " in user.username:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username cannot have space-separated words")
-  existing_user=db.query(User).filter(User.username==user.username).first()
-  if existing_user:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
-  new_user= User(username=user.username, password=hash_password(user.password))
-  db.add(new_user)
-  db.commit()
-  db.refresh(new_user)
-  return { "message": "User added successfully", "user": new_user }
+  try:  
+    if " " in user.username:
+      raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username cannot have space-separated words")
+    existing_user=db.query(User).filter(User.username==user.username).first()
+    if existing_user:
+      raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
+    new_user= User(username=user.username, password=hash_password(user.password))
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return { "message": "User added successfully", "user": new_user }
+  except Exception as e:
+    print("Error in registration :", e)
 
 @router.post("/login", status_code=status.HTTP_200_OK)
 def login(data:UserSchema, db:Session = Depends(get_db)):
-  user=db.query(User).filter(User.username==data.username).first()
-  if not user or not verify_password(data.password,user.password): 
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Invalid Credentials")
-  token=create_access_token(data={"sub":str(user.user_id)})
-  return Token(access_token=token,token_type="Bearer")
-
+  try:
+    user=db.query(User).filter(User.username==data.username).first()
+    if not user or not verify_password(data.password,user.password): 
+      raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Invalid Credentials")
+    token=create_access_token(data={"sub":str(user.user_id)})
+    return Token(access_token=token,token_type="Bearer")
+  except Exception as e:
+    print("Error in login :", e)
 
 
 
