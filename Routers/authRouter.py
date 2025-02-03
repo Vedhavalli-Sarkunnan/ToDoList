@@ -9,7 +9,7 @@ from auth.jwt import create_access_token
 
 router = APIRouter(tags=["Auth"],prefix="/auth")
 
-@router.post("/",status_code=status.HTTP_201_CREATED)
+@router.post("/register",status_code=status.HTTP_201_CREATED)
 def register(user:UserSchema, db:Session = Depends(get_db)):
   if " " in user.username:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username cannot have space-separated words")
@@ -27,8 +27,8 @@ def login(data:UserSchema, db:Session = Depends(get_db)):
   user=db.query(User).filter(User.username==data.username).first()
   if not user or not verify_password(data.password,user.password): 
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Invalid Credentials")
-  token=create_access_token(data={"sub":user.user_id})
-  return Token(access_token=token,token_type="bearer")
+  token=create_access_token(data={"sub":str(user.user_id)})
+  return Token(access_token=token,token_type="Bearer")
 
 
 

@@ -1,7 +1,12 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class TaskSchema(BaseModel):
   task: str
+
+class UpdateUserSchema(BaseModel):
+  username: Optional[str] = None
+  password: Optional[str] = None
 
 class UserSchema(BaseModel):
   username: str
@@ -14,6 +19,7 @@ class ShowTask(BaseModel):
 
 class ShowUser(BaseModel):
   username: str
+  user_id: int
   class Config():
     from_attributes=True
 

@@ -1,5 +1,5 @@
 from fastapi import APIRouter,HTTPException, Depends
-from schemas import ShowUser
+from schemas import ShowUser, UpdateUserSchema
 from models import User
 from starlette import status
 from database import get_db
@@ -22,16 +22,16 @@ def get_particular_user(id: int,db:Session = Depends(get_db)):
   return particular_user 
 
 @router.put("/{id}",status_code=status.HTTP_200_OK)
-def update_user(id:int, username: str =None, password: str=None, db:Session = Depends(get_db)):
-  if not username and not password:
+def update_user(id:int, user: UpdateUserSchema, db:Session = Depends(get_db)):
+  if not user.username and not user.password:
     return {"message" : "No updates to be made"}
   user_to_be_updated = db.query(User).filter(User.user_id==id).first()
   if not user_to_be_updated:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with ID {id} not found")
-  if username:
-    user_to_be_updated.username = username
-  if password: 
-    user_to_be_updated.password = hash_password(password)
+  if user.username:
+    user_to_be_updated.username = user.username
+  if user.password: 
+    user_to_be_updated.password = hash_password(user.password)
   db.commit()
   db.refresh(user_to_be_updated)
   return { "message" : "User updated successfully", "user" : user_to_be_updated }
